@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>xsukax ntfy Sender</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Noto Sans', Helvetica, Arial, sans-serif; background: #f6f8fa; color: #24292f; line-height: 1.6; padding: 24px; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: white; border: 1px solid #d0d7de; border-radius: 6px; padding: 24px; margin-bottom: 16px; }
+        .header h1 { font-size: 28px; font-weight: 600; color: #24292f; margin-bottom: 8px; }
+        .header p { color: #57606a; font-size: 14px; margin-bottom: 12px; }
+        .info-banner { padding: 10px 12px; background: #fff8c5; border: 1px solid #d4ac00; border-radius: 6px; font-size: 13px; color: #24292f; margin-top: 12px; }
+        .card { background: white; border: 1px solid #d0d7de; border-radius: 6px; padding: 24px; margin-bottom: 16px; }
+        .card-title { font-size: 16px; font-weight: 600; color: #24292f; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #d0d7de; }
+        .form-group { margin-bottom: 16px; }
+        .form-label { display: block; font-size: 14px; font-weight: 600; color: #24292f; margin-bottom: 6px; }
+        .form-label .required { color: #cf222e; margin-left: 2px; }
+        .form-input, .form-textarea, .form-select { width: 100%; padding: 5px 12px; border: 1px solid #d0d7de; border-radius: 6px; font-size: 14px; font-family: inherit; background: #ffffff; color: #24292f; transition: all 0.15s ease; }
+        .form-input:focus, .form-textarea:focus, .form-select:focus { outline: none; border-color: #0969da; box-shadow: 0 0 0 3px rgba(9, 105, 218, 0.1); }
+        .form-textarea { resize: vertical; min-height: 100px; line-height: 1.5; }
+        .form-helper { font-size: 12px; color: #57606a; margin-top: 4px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .priority-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: 8px; }
+        .priority-item { padding: 12px 8px; border: 1px solid #d0d7de; border-radius: 6px; background: #f6f8fa; text-align: center; cursor: pointer; transition: all 0.15s ease; }
+        .priority-item:hover { background: #ffffff; border-color: #0969da; }
+        .priority-item.selected { background: #ddf4ff; border-color: #0969da; }
+        .priority-emoji { font-size: 20px; display: block; margin-bottom: 4px; }
+        .priority-label { font-size: 11px; font-weight: 600; color: #24292f; display: block; }
+        .checkbox-wrapper { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #f6f8fa; border: 1px solid #d0d7de; border-radius: 6px; cursor: pointer; transition: background 0.15s ease; }
+        .checkbox-wrapper:hover { background: #ffffff; }
+        .checkbox-wrapper input[type="checkbox"] { width: 16px; height: 16px; cursor: pointer; }
+        .checkbox-wrapper label { cursor: pointer; font-size: 14px; flex: 1; user-select: none; }
+        .btn-group { display: flex; gap: 12px; margin-top: 16px; }
+        .btn { flex: 1; padding: 10px 16px; border: 1px solid #d0d7de; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.15s ease; font-family: inherit; }
+        .btn-primary { background: #2da44e; color: white; border-color: #2da44e; }
+        .btn-primary:hover { background: #2c974b; border-color: #2c974b; }
+        .btn-secondary { background: #0969da; color: white; border-color: #0969da; }
+        .btn-secondary:hover { background: #0860ca; border-color: #0860ca; }
+        .btn-reset { background: #f6f8fa; color: #24292f; padding: 5px 12px; }
+        .btn-reset:hover { background: #ffffff; border-color: #0969da; }
+        .toast-container { position: fixed; top: 20px; right: 20px; z-index: 1000; max-width: 400px; }
+        .toast { background: #24292f; color: white; padding: 14px 16px; border-radius: 6px; margin-bottom: 8px; animation: slideIn 0.2s ease; font-size: 14px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); word-wrap: break-word; }
+        .toast.success { background: #2da44e; }
+        .toast.error { background: #cf222e; font-weight: 500; }
+        @keyframes slideIn { from { transform: translateX(400px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        .code-section { margin-top: 24px; }
+        .code-tabs { display: flex; gap: 2px; border-bottom: 1px solid #d0d7de; margin-bottom: 0; overflow-x: auto; }
+        .code-tab { padding: 8px 16px; background: #f6f8fa; border: 1px solid #d0d7de; border-bottom: none; border-radius: 6px 6px 0 0; font-size: 14px; font-weight: 500; cursor: pointer; color: #57606a; white-space: nowrap; }
+        .code-tab:hover { background: #ffffff; color: #24292f; }
+        .code-tab.active { background: white; color: #24292f; border-bottom-color: white; position: relative; top: 1px; }
+        .code-content { display: none; background: #f6f8fa; border: 1px solid #d0d7de; border-top: none; border-radius: 0 0 6px 6px; padding: 16px; }
+        .code-content.active { display: block; }
+        .code-block { background: #24292f; color: #c9d1d9; padding: 16px; border-radius: 6px; font-family: 'Monaco', 'Courier New', monospace; font-size: 13px; line-height: 1.6; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; position: relative; }
+        .code-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .code-label { font-size: 12px; font-weight: 600; color: #57606a; text-transform: uppercase; }
+        .copy-btn { padding: 4px 12px; background: #0969da; color: white; border: none; border-radius: 4px; font-size: 12px; font-weight: 500; cursor: pointer; }
+        .copy-btn:hover { background: #0860ca; }
+        .url-result { background: #ddf4ff; border: 1px solid #0969da; border-radius: 6px; padding: 16px; margin-top: 16px; display: none; }
+        .url-result.show { display: block; }
+        .url-result-title { font-size: 14px; font-weight: 600; color: #0969da; margin-bottom: 12px; }
+        .url-display { background: white; border: 1px solid #d0d7de; border-radius: 6px; padding: 12px; font-family: 'Monaco', 'Courier New', monospace; font-size: 12px; word-break: break-all; color: #24292f; user-select: all; line-height: 1.6; }
+        .url-actions { display: flex; gap: 8px; margin-top: 12px; }
+        @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } .btn-group { flex-direction: column; } .priority-grid { grid-template-columns: repeat(3, 1fr); } .code-tabs { flex-wrap: wrap; } .toast-container { left: 20px; right: 20px; max-width: none; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📡 xsukax ntfy Sender</h1>
+            <p>Professional notification sender for ntfy.sh with real-time code generation</p>
+            <div class="info-banner">
+                ℹ️ <strong>Note:</strong> ntfy.sh has rate limits. If you encounter errors, wait a moment or use your own self-hosted ntfy server.
+            </div>
+        </div>
+
+        <form id="ntfyForm">
+            <div class="card">
+                <div class="card-title">Server & Topic</div>
+                <div class="form-group">
+                    <label class="form-label">Server URL</label>
+                    <div style="display: flex; gap: 8px;">
+                        <input type="text" id="server" class="form-input" value="https://ntfy.sh" style="flex: 1;">
+                        <button type="button" class="btn btn-reset" onclick="resetServer()">Reset</button>
+                    </div>
+                    <div class="form-helper">ntfy server URL (default: ntfy.sh)</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Topic <span class="required">*</span></label>
+                    <input type="text" id="topic" class="form-input" placeholder="my-topic" required>
+                    <div class="form-helper">Topic name to publish to</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Message Content</div>
+                <div class="form-group">
+                    <label class="form-label">Message <span class="required">*</span></label>
+                    <textarea id="message" class="form-textarea" placeholder="Your notification message..." required></textarea>
+                    <div class="form-helper">Notification message body</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Title</label>
+                    <input type="text" id="title" class="form-input" placeholder="Notification title">
+                    <div class="form-helper">Optional title shown above the message</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Priority & Tags</div>
+                <div class="form-group">
+                    <label class="form-label">Priority</label>
+                    <div class="priority-grid">
+                        <div class="priority-item" data-priority="1" onclick="selectPriority(1)">
+                            <span class="priority-emoji">🔕</span>
+                            <span class="priority-label">Min (1)</span>
+                        </div>
+                        <div class="priority-item" data-priority="2" onclick="selectPriority(2)">
+                            <span class="priority-emoji">🔔</span>
+                            <span class="priority-label">Low (2)</span>
+                        </div>
+                        <div class="priority-item selected" data-priority="3" onclick="selectPriority(3)">
+                            <span class="priority-emoji">📢</span>
+                            <span class="priority-label">Default (3)</span>
+                        </div>
+                        <div class="priority-item" data-priority="4" onclick="selectPriority(4)">
+                            <span class="priority-emoji">⚠️</span>
+                            <span class="priority-label">High (4)</span>
+                        </div>
+                        <div class="priority-item" data-priority="5" onclick="selectPriority(5)">
+                            <span class="priority-emoji">🚨</span>
+                            <span class="priority-label">Urgent (5)</span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="priority" value="3">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Tags</label>
+                    <input type="text" id="tags" class="form-input" placeholder="warning, computer, tada">
+                    <div class="form-helper">Comma-separated tags or emoji shortcuts</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Actions & Links</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Click URL</label>
+                        <input type="url" id="click" class="form-input" placeholder="https://example.com">
+                        <div class="form-helper">URL to open when tapping notification</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Icon URL</label>
+                        <input type="url" id="icon" class="form-input" placeholder="https://example.com/icon.png">
+                        <div class="form-helper">Custom notification icon</div>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Attachment URL</label>
+                        <input type="url" id="attach" class="form-input" placeholder="https://example.com/file.pdf">
+                        <div class="form-helper">File to attach to notification</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Filename</label>
+                        <input type="text" id="filename" class="form-input" placeholder="document.pdf">
+                        <div class="form-helper">Custom filename for attachment</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Actions (JSON)</label>
+                    <textarea id="actions" class="form-textarea" style="min-height: 70px;" placeholder='[{"action": "view", "label": "Open", "url": "https://example.com"}]'></textarea>
+                    <div class="form-helper">Action buttons in JSON format (view, broadcast, http)</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">Delivery & Options</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Delay</label>
+                        <input type="text" id="delay" class="form-input" placeholder="30s, 10m, 1h">
+                        <div class="form-helper">Schedule delivery time</div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email Forward</label>
+                        <input type="email" id="email" class="form-input" placeholder="user@example.com">
+                        <div class="form-helper">Forward to email address</div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Message Cache</label>
+                    <select id="cache" class="form-select">
+                        <option value="">Default (enabled)</option>
+                        <option value="no">Disabled</option>
+                        <option value="yes">Enabled</option>
+                    </select>
+                    <div class="form-helper">Server-side message caching</div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Advanced Options</label>
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="markdown">
+                        <label for="markdown">Enable Markdown formatting in message</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" id="firebase">
+                        <label for="firebase">Disable Firebase (FCM) delivery</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="url-result" id="urlResult">
+                <div class="url-result-title">📋 Generated Auto-Send URL</div>
+                <div class="url-display" id="urlDisplay"></div>
+                <div class="url-actions">
+                    <button type="button" class="btn btn-secondary" onclick="copyUrl()">Copy URL</button>
+                    <button type="button" class="btn btn-primary" onclick="openUrl()">Open URL</button>
+                </div>
+                <div class="form-helper" style="margin-top: 12px; padding: 8px; background: #fff8c5; border-radius: 4px; border: 1px solid #d4ac00;">
+                    ⚡ This URL will automatically send the notification when opened!
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button type="button" class="btn btn-secondary" onclick="generateUrl()">🔗 Generate Auto-Send URL</button>
+                <button type="button" class="btn btn-primary" onclick="testNotification()">🚀 Send Notification</button>
+            </div>
+        </form>
+
+        <div class="card code-section">
+            <div class="card-title">📝 Generated Code Examples</div>
+            <div class="code-tabs">
+                <div class="code-tab active" onclick="switchTab('curl')">curl</div>
+                <div class="code-tab" onclick="switchTab('ntfycli')">ntfy CLI</div>
+                <div class="code-tab" onclick="switchTab('http')">HTTP</div>
+                <div class="code-tab" onclick="switchTab('javascript')">JavaScript</div>
+                <div class="code-tab" onclick="switchTab('go')">Go</div>
+                <div class="code-tab" onclick="switchTab('python')">Python</div>
+                <div class="code-tab" onclick="switchTab('php')">PHP</div>
+            </div>
+            <div class="code-content active" id="curl">
+                <div class="code-header">
+                    <span class="code-label">Command Line (curl)</span>
+                    <button class="copy-btn" onclick="copyCode('curl')">Copy</button>
+                </div>
+                <div class="code-block" id="code-curl"></div>
+            </div>
+            <div class="code-content" id="ntfycli">
+                <div class="code-header">
+                    <span class="code-label">ntfy CLI</span>
+                    <button class="copy-btn" onclick="copyCode('ntfycli')">Copy</button>
+                </div>
+                <div class="code-block" id="code-ntfycli"></div>
+            </div>
+            <div class="code-content" id="http">
+                <div class="code-header">
+                    <span class="code-label">HTTP Request</span>
+                    <button class="copy-btn" onclick="copyCode('http')">Copy</button>
+                </div>
+                <div class="code-block" id="code-http"></div>
+            </div>
+            <div class="code-content" id="javascript">
+                <div class="code-header">
+                    <span class="code-label">JavaScript (fetch)</span>
+                    <button class="copy-btn" onclick="copyCode('javascript')">Copy</button>
+                </div>
+                <div class="code-block" id="code-javascript"></div>
+            </div>
+            <div class="code-content" id="go">
+                <div class="code-header">
+                    <span class="code-label">Go</span>
+                    <button class="copy-btn" onclick="copyCode('go')">Copy</button>
+                </div>
+                <div class="code-block" id="code-go"></div>
+            </div>
+            <div class="code-content" id="python">
+                <div class="code-header">
+                    <span class="code-label">Python</span>
+                    <button class="copy-btn" onclick="copyCode('python')">Copy</button>
+                </div>
+                <div class="code-block" id="code-python"></div>
+            </div>
+            <div class="code-content" id="php">
+                <div class="code-header">
+                    <span class="code-label">PHP</span>
+                    <button class="copy-btn" onclick="copyCode('php')">Copy</button>
+                </div>
+                <div class="code-block" id="code-php"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        let selectedPriority = 3;
+
+        // Priority Selection
+        function selectPriority(priority) {
+            selectedPriority = priority;
+            document.getElementById('priority').value = priority;
+            document.querySelectorAll('.priority-item').forEach(item => item.classList.remove('selected'));
+            document.querySelector(`[data-priority="${priority}"]`).classList.add('selected');
+            updateCode();
+        }
+
+        // Reset Server
+        function resetServer() {
+            document.getElementById('server').value = 'https://ntfy.sh';
+            showToast('Server reset to default ntfy.sh', 'success');
+            updateCode();
+        }
+
+        // Tab Switching
+        function switchTab(tab) {
+            document.querySelectorAll('.code-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.code-content').forEach(c => c.classList.remove('active'));
+            document.querySelector(`.code-tab[onclick="switchTab('${tab}')"]`).classList.add('active');
+            document.getElementById(tab).classList.add('active');
+        }
+
+        // Toast Notifications
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            
+            const duration = type === 'error' ? 6000 : 3000;
+            setTimeout(() => toast.remove(), duration);
+        }
+
+        // Shell Escape
+        function escapeShell(str) {
+            return str.replace(/'/g, "'\\''");
+        }
+
+        // Update Code Examples
+        function updateCode() {
+            const server = document.getElementById('server').value.trim() || 'https://ntfy.sh';
+            const topic = document.getElementById('topic').value.trim() || 'mytopic';
+            const message = document.getElementById('message').value.trim() || 'Your message here';
+            const title = document.getElementById('title').value.trim();
+            const tags = document.getElementById('tags').value.trim();
+            const click = document.getElementById('click').value.trim();
+            const icon = document.getElementById('icon').value.trim();
+            const attach = document.getElementById('attach').value.trim();
+            const filename = document.getElementById('filename').value.trim();
+            const delay = document.getElementById('delay').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const actions = document.getElementById('actions').value.trim();
+            const markdown = document.getElementById('markdown').checked;
+            const cache = document.getElementById('cache').value;
+            const firebase = document.getElementById('firebase').checked;
+
+            // Generate curl
+            let curlCode = 'curl';
+            if (title) curlCode += ` \\\n  -H "Title: ${title}"`;
+            if (selectedPriority !== 3) curlCode += ` \\\n  -H "Priority: ${selectedPriority}"`;
+            if (tags) curlCode += ` \\\n  -H "Tags: ${tags}"`;
+            if (click) curlCode += ` \\\n  -H "Click: ${click}"`;
+            if (icon) curlCode += ` \\\n  -H "Icon: ${icon}"`;
+            if (attach) curlCode += ` \\\n  -H "Attach: ${attach}"`;
+            if (filename) curlCode += ` \\\n  -H "Filename: ${filename}"`;
+            if (delay) curlCode += ` \\\n  -H "Delay: ${delay}"`;
+            if (email) curlCode += ` \\\n  -H "Email: ${email}"`;
+            if (actions) curlCode += ` \\\n  -H 'Actions: ${actions}'`;
+            if (markdown) curlCode += ` \\\n  -H "Markdown: yes"`;
+            if (cache) curlCode += ` \\\n  -H "Cache: ${cache}"`;
+            if (firebase) curlCode += ` \\\n  -H "Firebase: no"`;
+            curlCode += ` \\\n  -d "${escapeShell(message)}" \\\n  ${server}/${topic}`;
+            document.getElementById('code-curl').textContent = curlCode;
+
+            // Generate ntfy CLI
+            let cliCode = 'ntfy publish';
+            if (title) cliCode += ` \\\n  --title="${title}"`;
+            if (selectedPriority !== 3) cliCode += ` \\\n  --priority=${selectedPriority}`;
+            if (tags) cliCode += ` \\\n  --tags="${tags}"`;
+            if (click) cliCode += ` \\\n  --click="${click}"`;
+            if (icon) cliCode += ` \\\n  --icon="${icon}"`;
+            if (attach) cliCode += ` \\\n  --attach="${attach}"`;
+            if (filename) cliCode += ` \\\n  --filename="${filename}"`;
+            if (delay) cliCode += ` \\\n  --delay="${delay}"`;
+            if (email) cliCode += ` \\\n  --email="${email}"`;
+            if (markdown) cliCode += ` \\\n  --markdown`;
+            if (cache === 'no') cliCode += ` \\\n  --no-cache`;
+            if (firebase) cliCode += ` \\\n  --no-firebase`;
+            cliCode += ` \\\n  ${topic} \\\n  "${escapeShell(message)}"`;
+            document.getElementById('code-ntfycli').textContent = cliCode;
+
+            // Generate HTTP
+            let httpCode = `POST /${topic} HTTP/1.1\nHost: ${server.replace('https://', '').replace('http://', '')}`;
+            if (title) httpCode += `\nTitle: ${title}`;
+            if (selectedPriority !== 3) httpCode += `\nPriority: ${selectedPriority}`;
+            if (tags) httpCode += `\nTags: ${tags}`;
+            if (click) httpCode += `\nClick: ${click}`;
+            if (icon) httpCode += `\nIcon: ${icon}`;
+            if (attach) httpCode += `\nAttach: ${attach}`;
+            if (filename) httpCode += `\nFilename: ${filename}`;
+            if (delay) httpCode += `\nDelay: ${delay}`;
+            if (email) httpCode += `\nEmail: ${email}`;
+            if (actions) httpCode += `\nActions: ${actions}`;
+            if (markdown) httpCode += `\nMarkdown: yes`;
+            if (cache) httpCode += `\nCache: ${cache}`;
+            if (firebase) httpCode += `\nFirebase: no`;
+            httpCode += `\n\n${message}`;
+            document.getElementById('code-http').textContent = httpCode;
+
+            // Generate JavaScript
+            let jsCode = `fetch('${server}/${topic}', {\n  method: 'POST',\n  body: '${message.replace(/'/g, "\\'")}',\n  headers: {`;
+            const jsHeaders = [];
+            if (title) jsHeaders.push(`    'Title': '${title}'`);
+            if (selectedPriority !== 3) jsHeaders.push(`    'Priority': '${selectedPriority}'`);
+            if (tags) jsHeaders.push(`    'Tags': '${tags}'`);
+            if (click) jsHeaders.push(`    'Click': '${click}'`);
+            if (icon) jsHeaders.push(`    'Icon': '${icon}'`);
+            if (attach) jsHeaders.push(`    'Attach': '${attach}'`);
+            if (filename) jsHeaders.push(`    'Filename': '${filename}'`);
+            if (delay) jsHeaders.push(`    'Delay': '${delay}'`);
+            if (email) jsHeaders.push(`    'Email': '${email}'`);
+            if (actions) jsHeaders.push(`    'Actions': '${actions.replace(/'/g, "\\'")}'`);
+            if (markdown) jsHeaders.push(`    'Markdown': 'yes'`);
+            if (cache) jsHeaders.push(`    'Cache': '${cache}'`);
+            if (firebase) jsHeaders.push(`    'Firebase': 'no'`);
+            jsCode += jsHeaders.length > 0 ? '\n' + jsHeaders.join(',\n') + '\n  ' : ' ';
+            jsCode += `}\n})`;
+            document.getElementById('code-javascript').textContent = jsCode;
+
+            // Generate Go
+            let goCode = `req, _ := http.NewRequest("POST", "${server}/${topic}",\n    strings.NewReader("${message.replace(/"/g, '\\"')}"))`;
+            if (title) goCode += `\nreq.Header.Set("Title", "${title}")`;
+            if (selectedPriority !== 3) goCode += `\nreq.Header.Set("Priority", "${selectedPriority}")`;
+            if (tags) goCode += `\nreq.Header.Set("Tags", "${tags}")`;
+            if (click) goCode += `\nreq.Header.Set("Click", "${click}")`;
+            if (icon) goCode += `\nreq.Header.Set("Icon", "${icon}")`;
+            if (attach) goCode += `\nreq.Header.Set("Attach", "${attach}")`;
+            if (filename) goCode += `\nreq.Header.Set("Filename", "${filename}")`;
+            if (delay) goCode += `\nreq.Header.Set("Delay", "${delay}")`;
+            if (email) goCode += `\nreq.Header.Set("Email", "${email}")`;
+            if (actions) goCode += `\nreq.Header.Set("Actions", "${actions.replace(/"/g, '\\"')}")`;
+            if (markdown) goCode += `\nreq.Header.Set("Markdown", "yes")`;
+            if (cache) goCode += `\nreq.Header.Set("Cache", "${cache}")`;
+            if (firebase) goCode += `\nreq.Header.Set("Firebase", "no")`;
+            goCode += `\nhttp.DefaultClient.Do(req)`;
+            document.getElementById('code-go').textContent = goCode;
+
+            // Generate Python
+            let pythonCode = `requests.post("${server}/${topic}",\n    data="${message.replace(/"/g, '\\"')}".encode('utf-8')`;
+            const pyHeaders = [];
+            if (title) pyHeaders.push(`        "Title": "${title}"`);
+            if (selectedPriority !== 3) pyHeaders.push(`        "Priority": "${selectedPriority}"`);
+            if (tags) pyHeaders.push(`        "Tags": "${tags}"`);
+            if (click) pyHeaders.push(`        "Click": "${click}"`);
+            if (icon) pyHeaders.push(`        "Icon": "${icon}"`);
+            if (attach) pyHeaders.push(`        "Attach": "${attach}"`);
+            if (filename) pyHeaders.push(`        "Filename": "${filename}"`);
+            if (delay) pyHeaders.push(`        "Delay": "${delay}"`);
+            if (email) pyHeaders.push(`        "Email": "${email}"`);
+            if (actions) pyHeaders.push(`        "Actions": "${actions.replace(/"/g, '\\"')}"`);
+            if (markdown) pyHeaders.push(`        "Markdown": "yes"`);
+            if (cache) pyHeaders.push(`        "Cache": "${cache}"`);
+            if (firebase) pyHeaders.push(`        "Firebase": "no"`);
+            if (pyHeaders.length > 0) {
+                pythonCode += `,\n    headers={\n${pyHeaders.join(',\n')}\n    }`;
+            }
+            pythonCode += `)`;
+            document.getElementById('code-python').textContent = pythonCode;
+
+            // Generate PHP
+            let phpCode = `file_get_contents('${server}/${topic}', false, stream_context_create([\n    'http' => [\n        'method' => 'POST',`;
+            const phpHeaders = [`            "Content-Type: text/plain"`];
+            if (title) phpHeaders.push(`            "Title: ${title}"`);
+            if (selectedPriority !== 3) phpHeaders.push(`            "Priority: ${selectedPriority}"`);
+            if (tags) phpHeaders.push(`            "Tags: ${tags}"`);
+            if (click) phpHeaders.push(`            "Click: ${click}"`);
+            if (icon) phpHeaders.push(`            "Icon: ${icon}"`);
+            if (attach) phpHeaders.push(`            "Attach: ${attach}"`);
+            if (filename) phpHeaders.push(`            "Filename: ${filename}"`);
+            if (delay) phpHeaders.push(`            "Delay: ${delay}"`);
+            if (email) phpHeaders.push(`            "Email: ${email}"`);
+            if (actions) phpHeaders.push(`            "Actions: ${actions.replace(/"/g, '\\"')}"`);
+            if (markdown) phpHeaders.push(`            "Markdown: yes"`);
+            if (cache) phpHeaders.push(`            "Cache: ${cache}"`);
+            if (firebase) phpHeaders.push(`            "Firebase: no"`);
+            phpCode += `\n        'header' =>\n${phpHeaders.join(" .\\n\"\\\\r\\\\n\" .\n")} . "\\r\\n",`;
+            phpCode += `\n        'content' => '${message.replace(/'/g, "\\'")}'\n    ]\n]));`;
+            document.getElementById('code-php').textContent = phpCode;
+        }
+
+        // Copy Code
+        function copyCode(lang) {
+            const code = document.getElementById(`code-${lang}`).textContent;
+            navigator.clipboard.writeText(code).then(() => {
+                showToast('Code copied to clipboard!', 'success');
+            }).catch(() => {
+                showToast('Failed to copy code', 'error');
+            });
+        }
+
+        // Get Form Data
+        function getFormData() {
+            const data = {
+                server: document.getElementById('server').value.trim() || 'https://ntfy.sh',
+                topic: document.getElementById('topic').value.trim(),
+                message: document.getElementById('message').value.trim()
+            };
+            
+            if (!data.topic || !data.message) {
+                throw new Error('Topic and message are required');
+            }
+            
+            const fields = ['title', 'tags', 'click', 'icon', 'attach', 'filename', 'delay', 'email', 'actions', 'cache'];
+            fields.forEach(field => {
+                const val = document.getElementById(field).value.trim();
+                if (val) data[field] = val;
+            });
+            
+            if (selectedPriority !== 3) data.priority = selectedPriority;
+            if (document.getElementById('markdown').checked) data.markdown = 'yes';
+            if (document.getElementById('firebase').checked) data.firebase = 'no';
+            
+            return data;
+        }
+
+        // Populate Form from Data
+        function populateFormFromData(data) {
+            document.getElementById('server').value = data.server || 'https://ntfy.sh';
+            document.getElementById('topic').value = data.topic || '';
+            document.getElementById('message').value = data.message || '';
+            document.getElementById('title').value = data.title || '';
+            document.getElementById('tags').value = data.tags || '';
+            document.getElementById('click').value = data.click || '';
+            document.getElementById('icon').value = data.icon || '';
+            document.getElementById('attach').value = data.attach || '';
+            document.getElementById('filename').value = data.filename || '';
+            document.getElementById('delay').value = data.delay || '';
+            document.getElementById('email').value = data.email || '';
+            document.getElementById('cache').value = data.cache || '';
+            document.getElementById('actions').value = data.actions || '';
+            document.getElementById('markdown').checked = data.markdown === 'yes';
+            document.getElementById('firebase').checked = data.firebase === 'no';
+            
+            if (data.priority) {
+                selectPriority(data.priority);
+            }
+            
+            updateCode();
+        }
+
+        // Send Notification
+        async function sendNotification(data) {
+            const headers = {};
+            
+            if (data.title) headers['Title'] = data.title;
+            if (data.priority) headers['Priority'] = data.priority.toString();
+            if (data.tags) headers['Tags'] = data.tags;
+            if (data.click) headers['Click'] = data.click;
+            if (data.icon) headers['Icon'] = data.icon;
+            if (data.attach) headers['Attach'] = data.attach;
+            if (data.filename) headers['Filename'] = data.filename;
+            if (data.delay) headers['Delay'] = data.delay;
+            if (data.email) headers['Email'] = data.email;
+            if (data.actions) headers['Actions'] = data.actions;
+            if (data.markdown) headers['Markdown'] = data.markdown;
+            if (data.cache) headers['Cache'] = data.cache;
+            if (data.firebase) headers['Firebase'] = data.firebase;
+            
+            const response = await fetch(`${data.server}/${data.topic}`, {
+                method: 'POST',
+                headers: headers,
+                body: data.message
+            });
+            
+            if (!response.ok) {
+                let errorMsg = `HTTP ${response.status}`;
+                
+                if (response.status === 429) {
+                    errorMsg = 'Rate limit exceeded! Please wait a moment or use your own ntfy server.';
+                } else if (response.status === 403) {
+                    errorMsg = 'Access denied. Topic may be protected.';
+                } else if (response.status === 404) {
+                    errorMsg = 'Server not found. Check your server URL.';
+                } else if (response.status === 400) {
+                    errorMsg = 'Bad request. Check your notification parameters.';
+                }
+                
+                throw new Error(errorMsg);
+            }
+            
+            return await response.json();
+        }
+
+        // Test Notification
+        async function testNotification() {
+            try {
+                const data = getFormData();
+                showToast('Sending notification...', 'success');
+                await sendNotification(data);
+                showToast('✓ Notification sent successfully!', 'success');
+            } catch (error) {
+                showToast(error.message, 'error');
+                console.error('Send error:', error);
+            }
+        }
+
+        // Generate URL
+        function generateUrl() {
+            try {
+                const data = getFormData();
+                const encoded = btoa(JSON.stringify(data));
+                const url = `${window.location.href.split('?')[0]}?data=${encoded}`;
+                
+                document.getElementById('urlDisplay').textContent = url;
+                document.getElementById('urlResult').classList.add('show');
+                window.history.pushState({}, '', url);
+                
+                showToast('URL generated successfully!', 'success');
+            } catch (error) {
+                showToast(error.message, 'error');
+            }
+        }
+
+        // Copy URL
+        function copyUrl() {
+            const url = document.getElementById('urlDisplay').textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                showToast('URL copied to clipboard!', 'success');
+            }).catch(() => {
+                showToast('Failed to copy URL', 'error');
+            });
+        }
+
+        // Open URL
+        function openUrl() {
+            const url = document.getElementById('urlDisplay').textContent;
+            window.open(url, '_blank');
+        }
+
+        // Check Auto Send
+        async function checkAutoSend() {
+            const params = new URLSearchParams(window.location.search);
+            const autoData = params.get('data');
+            
+            if (autoData) {
+                try {
+                    const data = JSON.parse(atob(autoData));
+                    populateFormFromData(data);
+                    showToast('Form loaded from URL', 'success');
+                    
+                    // Auto-send notification after 500ms
+                    setTimeout(async () => {
+                        try {
+                            showToast('Auto-sending notification...', 'success');
+                            await sendNotification(data);
+                            showToast('✓ Notification sent automatically!', 'success');
+                            
+                            // Clean URL after sending
+                            window.history.replaceState({}, document.title, window.location.pathname);
+                        } catch (sendError) {
+                            showToast('Auto-send failed: ' + sendError.message, 'error');
+                            console.error('Auto-send error:', sendError);
+                        }
+                    }, 500);
+                } catch (error) {
+                    showToast('Failed to load data from URL', 'error');
+                    console.error('URL parse error:', error);
+                }
+            }
+        }
+
+        // Event Listeners
+        document.addEventListener('input', updateCode);
+        document.addEventListener('DOMContentLoaded', () => {
+            updateCode();
+            checkAutoSend();
+        });
+    </script>
+</body>
+</html>
